@@ -27,6 +27,7 @@ public class ExamController {
     @GetMapping("/in/")
     public ResponseEntity<Map<String, Object>> in(Authentication authentication) {
         AuthenticationUser loginUser = (AuthenticationUser) authentication.getPrincipal();
+        this.examService.checkUserStudy(loginUser.getSources());
         Exam exam = this.examService.getExamWithCreate(loginUser.getSources());
         ExamPaper paper = this.examService.getLastUnCompleteExamPaper(exam, loginUser.getSources());
         if (paper == null) {
@@ -43,6 +44,7 @@ public class ExamController {
     @GetMapping("/start/")
     public ResponseEntity<Map<String, Object>> start(@RequestParam Long examId, Authentication authentication) {
         AuthenticationUser loginUser = (AuthenticationUser) authentication.getPrincipal();
+        this.examService.checkUserStudy(loginUser.getSources());
         Exam exam = this.examService.getExamById(examId);
         if (exam == null) {
             throw new SystemException(SystemError.EXAM_DATA_ERROR);

@@ -22,6 +22,12 @@ public interface SpecimenStudyRepository extends CrudRepository<SpecimenStudy, L
     /**
      *
      */
+    @Query("select sum(s.studyTiming) from SpecimenStudy s where s.userId=?1")
+    int findStudyTimingByUserId(Long userId);
+
+    /**
+     *
+     */
     @Modifying
     @Query("update SpecimenStudy set studyTiming=studyTiming+?1 where userId=?2 and specimenId=?3")
     void updateStudyTiming(int interval, Long userId, Long specimenId);

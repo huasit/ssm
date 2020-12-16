@@ -66,6 +66,17 @@ public class SpecimenService implements ApplicationRunner {
     /**
      *
      */
+    public int getStudyTiming(Long userId, Long specimenId) {
+        SpecimenStudy study = this.specimenStudyRepository.findByUserIdAndSpecimenId(userId, specimenId);
+        if(study == null) {
+            return 0;
+        }
+        return study.getStudyTiming();
+    }
+
+    /**
+     *
+     */
     public Specimen getSpecimenById(Long id) {
         Specimen specimen = this.specimenRepository.findById(id).orElse(null);
         if (specimen == null) {

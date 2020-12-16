@@ -31,6 +31,13 @@ public class SpecimenBank {
      */
     @Column(nullable = false)
     private String color;
+
+    /**
+     *
+     */
+    @Column(nullable = false)
+    private int questionCount;
+
     /**
      *
      */
@@ -73,6 +80,14 @@ public class SpecimenBank {
 
     public void setColor(String color) {
         this.color = color;
+    }
+
+    public int getQuestionCount() {
+        return questionCount;
+    }
+
+    public void setQuestionCount(int questionCount) {
+        this.questionCount = questionCount;
     }
 
     public Long getCreatorId() {

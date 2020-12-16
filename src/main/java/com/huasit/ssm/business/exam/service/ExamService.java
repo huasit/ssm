@@ -2,6 +2,7 @@ package com.huasit.ssm.business.exam.service;
 
 import com.huasit.ssm.business.exam.entity.*;
 import com.huasit.ssm.business.question.entity.*;
+import com.huasit.ssm.business.specimen.entity.SpecimenStudyRepository;
 import com.huasit.ssm.business.term.entity.Term;
 import com.huasit.ssm.business.term.service.TermService;
 import com.huasit.ssm.core.user.entity.User;
@@ -40,6 +41,16 @@ public class ExamService {
      */
     @Value("${exam.default.question.count}")
     private int defaultQuestionCount;
+
+    /**
+     *
+     */
+    public void checkUserStudy(User loginUser) {
+        int total = this.specimenStudyRepository.findStudyTimingByUserId(loginUser.getId());
+        if(total < 3 * 60 * 60) {
+            throw new SystemException(SystemError.EXAM_STUDY_TIMING_LIMIT, total / 60);
+        }
+    }
 
     /**
      *
@@ -90,7 +101,6 @@ public class ExamService {
         for (ExamPaperQuestion question : questions) {
             if (question.getCorrect() != null && question.getCorrect()) {
                 score = score.add(eachScore);
-                break;
             }
         }
         paper.setScore(score.floatValue());
@@ -259,4 +269,10 @@ public class ExamService {
      */
     @Autowired
     QuestionBankRepository questionBankRepository;
+
+    /**
+     *
+     */
+    @Autowired
+    SpecimenStudyRepository specimenStudyRepository;
 }

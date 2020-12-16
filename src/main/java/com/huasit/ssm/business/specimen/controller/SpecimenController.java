@@ -32,7 +32,8 @@ public class SpecimenController {
         } else {
             specimen = this.specimenService.study(id, interval, loginUser.getSources());
         }
-        return Response.success("specimen", specimen).entity();
+        int studyTiming = this.specimenService.getStudyTiming(loginUser.getSources().getId(), id);
+        return Response.success("specimen", specimen, "study_timing", studyTiming).entity();
     }
 
     /**
@@ -41,8 +42,10 @@ public class SpecimenController {
     @ResponseBody
     @GetMapping("/{id}/")
     public ResponseEntity<Map<String, Object>> get(@PathVariable Long id, Authentication authentication) {
+        AuthenticationUser loginUser = (AuthenticationUser) authentication.getPrincipal();
         Specimen specimen = this.specimenService.getSpecimenById(id);
-        return Response.success("specimen", specimen).entity();
+        int studyTiming = this.specimenService.getStudyTiming(loginUser.getSources().getId(), id);
+        return Response.success("specimen", specimen, "study_timing", studyTiming).entity();
     }
 
     /**
