@@ -46,9 +46,11 @@ public class ExamService {
      *
      */
     public void checkUserStudy(User loginUser) {
-        int total = this.specimenStudyRepository.findStudyTimingByUserId(loginUser.getId());
-        if(total < 3 * 60 * 60) {
-            throw new SystemException(SystemError.EXAM_STUDY_TIMING_LIMIT, total / 60);
+        if(loginUser.getType() == User.UserType.STUDENT) {
+            int total = this.specimenStudyRepository.findStudyTimingByUserId(loginUser.getId());
+            if(total < 3 * 60 * 60) {
+                throw new SystemException(SystemError.EXAM_STUDY_TIMING_LIMIT, total / 60);
+            }
         }
     }
 
