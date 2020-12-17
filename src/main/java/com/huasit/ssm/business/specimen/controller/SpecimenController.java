@@ -2,7 +2,6 @@ package com.huasit.ssm.business.specimen.controller;
 
 import com.huasit.ssm.business.specimen.entity.Specimen;
 import com.huasit.ssm.business.specimen.service.SpecimenService;
-import com.huasit.ssm.core.user.entity.User;
 import com.huasit.ssm.system.locale.Response;
 import com.huasit.ssm.system.security.model.AuthenticationUser;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,12 +25,7 @@ public class SpecimenController {
     @GetMapping("/study/{id}/")
     public ResponseEntity<Map<String, Object>> study(@PathVariable Long id, @RequestParam(name = "interval") int interval, Authentication authentication) {
         AuthenticationUser loginUser = (AuthenticationUser) authentication.getPrincipal();
-        Specimen specimen;
-        if (loginUser.getSources().getType() == User.UserType.GUEST) {
-            specimen = this.specimenService.getSpecimenById(id);
-        } else {
-            specimen = this.specimenService.study(id, interval, loginUser.getSources());
-        }
+        Specimen specimen = this.specimenService.study(id, interval, loginUser.getSources());
         int studyTiming = this.specimenService.getStudyTiming(loginUser.getSources().getId(), id);
         return Response.success("specimen", specimen, "study_timing", studyTiming).entity();
     }

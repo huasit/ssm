@@ -38,7 +38,7 @@ public class SpecimenService implements ApplicationRunner {
     public Specimen study(Long specimenId, int interval, User loginUser) {
         Specimen specimen = this.getSpecimenById(specimenId);
         LaboratoryBook book = this.laboratoryBookService.getUserBook(loginUser);
-        if (book == null) {
+        if (book == null && loginUser.getType() == User.UserType.STUDENT) {
             throw new SystemException(SystemError.LABORATORY_BOOK_HAS_NO_BOOK);
         }
         String redisKey = String.format("specimen_study_user%d_specimen%d", loginUser.getId(), specimen.getId());
