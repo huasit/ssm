@@ -31,6 +31,12 @@ public class QuestionBank implements Serializable {
      *
      */
     @Column(nullable = false)
+    private int questionCount;
+
+    /**
+     *
+     */
+    @Column(nullable = false)
     private Long creatorId;
 
     /**
@@ -61,6 +67,14 @@ public class QuestionBank implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public int getQuestionCount() {
+        return questionCount;
+    }
+
+    public void setQuestionCount(int questionCount) {
+        this.questionCount = questionCount;
     }
 
     public Long getCreatorId() {

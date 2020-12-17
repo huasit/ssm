@@ -192,33 +192,18 @@ public class ExamService {
             throw new SystemException(SystemError.EXAM_QUEST_BANK_COUNT_LIMIT);
         }
         List<ExamPaperQuestion> questions = new ArrayList<>();
-        Map<Long, List<Question>> map = new HashMap<>();
         for (QuestionBank bank : banks) {
             List<Question> qs = this.questionRepository.findByBankId(bank.getId());
-            Question q = qs.get(new Random().nextInt(qs.size()));
-            ExamPaperQuestion question = new ExamPaperQuestion();
-            question.setQid(q.getId());
-            question.setPaperId(paper.getId());
-            question.setTitle(q.getTitle());
-            question.setOptions(q.getOptions());
-            questions.add(question);
-            qs.remove(q);
-            map.put(bank.getId(), qs);
-        }
-        while (questions.size() < exam.getQuestionCount()) {
-            QuestionBank bank = banks.get(new Random().nextInt(banks.size()));
-            List<Question> qs = map.get(bank.getId());
-            if (qs.size() == 0) {
-                continue;
+            for(int n=0;n<bank.getQuestionCount();n++) {
+                Question q = qs.get(new Random().nextInt(qs.size()));
+                ExamPaperQuestion question = new ExamPaperQuestion();
+                question.setQid(q.getId());
+                question.setPaperId(paper.getId());
+                question.setTitle(q.getTitle());
+                question.setOptions(q.getOptions());
+                questions.add(question);
+                qs.remove(q);
             }
-            Question q = qs.get(new Random().nextInt(qs.size()));
-            ExamPaperQuestion question = new ExamPaperQuestion();
-            question.setQid(q.getId());
-            question.setPaperId(paper.getId());
-            question.setTitle(q.getTitle());
-            question.setOptions(q.getOptions());
-            questions.add(question);
-            qs.remove(q);
         }
         this.examPaperQuetionRepository.saveAll(questions);
         return questions;
