@@ -32,4 +32,10 @@ public interface QuestionRepository extends CrudRepository<Question, Long>, JpaS
      */
     @Query("from Question where del=false and bankId=?1")
     List<Question> findByBankId(Long bankId);
+
+    /**
+     *
+     */
+    @Query(nativeQuery = true, value = "select * from question where del=false and bank_id=?1 order by RAND() limit ?2")
+    List<Question> findByBankIdByRandom(Long bankId, int count);
 }

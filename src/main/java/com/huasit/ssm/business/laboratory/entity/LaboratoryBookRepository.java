@@ -24,6 +24,20 @@ public interface LaboratoryBookRepository extends CrudRepository<LaboratoryBook,
     /**
      *
      */
+    @Modifying
+    @Query("update LaboratoryBook set teacherId=?1 where id=?2")
+    void updateTeacherId(Long teacherId, Long id);
+
+    /**
+     *
+     */
+    @Modifying
+    @Query("update LaboratoryBook set teacherId2=?1 where id=?2")
+    void updateTeacherId2(Long teacherId2, Long id);
+
+    /**
+     *
+     */
     @Query("select l from LaboratoryBook l where l.del=false and l.userId=?1 and l.bookDay=?2 and (l.bookHour=?3 or l.bookHour2=?3)")
     LaboratoryBook findByUserAndTime(Long userId, Date day, int hour);
 

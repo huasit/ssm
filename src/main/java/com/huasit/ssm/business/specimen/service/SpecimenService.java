@@ -1,5 +1,6 @@
 package com.huasit.ssm.business.specimen.service;
 
+import com.huasit.ssm.business.attendance.service.AttendanceService;
 import com.huasit.ssm.business.laboratory.entity.LaboratoryBook;
 import com.huasit.ssm.business.laboratory.service.LaboratoryBookService;
 import com.huasit.ssm.business.specimen.entity.Specimen;
@@ -40,6 +41,13 @@ public class SpecimenService implements ApplicationRunner {
         LaboratoryBook book = this.laboratoryBookService.getUserBook(loginUser);
         if (book == null && loginUser.getType() == User.UserType.STUDENT) {
             throw new SystemException(SystemError.LABORATORY_BOOK_HAS_NO_BOOK);
+        }
+        if(book != null) {
+            boolean isAttendance = this.attendanceService.userIsAttendance(new Date(), book.getLaboratory().getId(), loginUser.getId());
+            if(!isAttendance) {
+                throw new SystemException(SystemError.ATTENDANCE_NOT_STUDY);
+            }
+            this.laboratoryBookService.updateBookTeacher(book);
         }
         String redisKey = String.format("specimen_study_user%d_specimen%d", loginUser.getId(), specimen.getId());
         String last = this.redisTemplate.opsForValue().get(redisKey);
@@ -190,6 +198,13 @@ public class SpecimenService implements ApplicationRunner {
     /**
      *
      */
+    public List<Object[]> studyTimingList(User loginUser) {
+        return this.specimenStudyRepository.findTiming(loginUser.getId());
+    }
+
+    /**
+     *
+     */
     @Autowired
     FileService fileService;
 
@@ -198,6 +213,12 @@ public class SpecimenService implements ApplicationRunner {
      */
     @Autowired
     StringRedisTemplate redisTemplate;
+
+    /**
+     *
+     */
+    @Autowired
+    AttendanceService attendanceService;
 
     /**
      *

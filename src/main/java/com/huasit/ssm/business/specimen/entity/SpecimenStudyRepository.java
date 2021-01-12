@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
 import javax.transaction.Transactional;
+import java.util.List;
 
 /**
  *
@@ -31,4 +32,10 @@ public interface SpecimenStudyRepository extends CrudRepository<SpecimenStudy, L
     @Modifying
     @Query("update SpecimenStudy set studyTiming=studyTiming+?1 where userId=?2 and specimenId=?3")
     void updateStudyTiming(int interval, Long userId, Long specimenId);
+
+    /**
+     *
+     */
+    @Query(nativeQuery = true,value = "select b.id,b.name,ifnull(a.study_timing,0) study_timing,c.color from (SELECT specimen_id,sum(study_timing) study_timing FROM `specimen_study` where user_id=?1 group by specimen_id) a left join specimen b on a.specimen_id=b.id left join specimen_bank c on b.bank_id=c.id where b.del=0 and c.del=0 order by study_timing desc,b.name")
+    List<Object[]> findTiming(Long userId);
 }

@@ -90,6 +90,12 @@ public class Specimen {
     @Transient
     private File audio;
 
+    /**
+     *
+     */
+    @Transient
+    private long studyTiming;
+
     public Long getId() {
         return id;
     }
@@ -192,5 +198,13 @@ public class Specimen {
 
     public void setAudio(File audio) {
         this.audio = audio;
+    }
+
+    public long getStudyTiming() {
+        return studyTiming;
+    }
+
+    public void setStudyTiming(long studyTiming) {
+        this.studyTiming = studyTiming;
     }
 }

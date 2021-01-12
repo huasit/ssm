@@ -9,16 +9,16 @@ import com.huasit.ssm.core.user.entity.User;
 import com.huasit.ssm.system.exception.SystemError;
 import com.huasit.ssm.system.exception.SystemException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.transaction.Transactional;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 
 @Service
 @Transactional
@@ -27,46 +27,91 @@ public class ExamService {
     /**
      *
      */
-    @Value("${exam.default.max_count}")
-    private int defaultMaxCount;
+    private int defaultLearn = 3 * 3600;
 
     /**
      *
      */
-    @Value("${exam.default.duration}")
-    private int defaultDuration;
+    private int defaultDuration = 3600;
 
     /**
      *
      */
-    @Value("${exam.default.question.count}")
-    private int defaultQuestionCount;
+    private int defaultMaxCount = 4;
 
     /**
      *
      */
-    public void checkUserStudy(User loginUser) {
-        if(loginUser.getType() == User.UserType.STUDENT) {
-            Integer total = this.specimenStudyRepository.findStudyTimingByUserId(loginUser.getId());
-            if(total == null) {
-                total = 0;
-            }
-            if(total < 3 * 60 * 60) {
-                throw new SystemException(SystemError.EXAM_STUDY_TIMING_LIMIT, total / 60);
-            }
-        }
-    }
-
-    /**
-     *
-     */
-    public Exam getExamWithCreate(User user) {
+    public Exam getExamWithCreate() {
         Term term = this.termService.getCurrentTerm();
         Exam exam = this.getExamByTerm(term);
         if (exam == null) {
             exam = this.createExam(term);
         }
         return exam;
+    }
+
+    /**
+     *
+     */
+    public Exam getExamById(Long id) {
+        return this.examRepository.findById(id).orElse(null);
+    }
+
+    /**
+     *
+     */
+    public Exam getExamByTerm(Term term) {
+        return this.examRepository.findByTermId(term.getId());
+    }
+
+
+    /**
+     *
+     */
+    public Exam createExam(Term term) {
+        PageRequest pageRequest = PageRequest.of(0, 1);
+        List<Exam> exams = this.examRepository.findLastExam(pageRequest);
+        Exam exam = new Exam();
+        if (exams == null || exams.size() <= 0) {
+            exam.setLearn(defaultLearn);
+            exam.setDuration(defaultDuration);
+            exam.setMaxCount(defaultMaxCount);
+        } else {
+            exam.setLearn(exams.get(0).getLearn());
+            exam.setDuration(exams.get(0).getDuration());
+            exam.setMaxCount(exams.get(0).getMaxCount());
+        }
+        exam.setTerm(term);
+        exam.setCreateTime(new Date());
+        this.examRepository.save(exam);
+        return exam;
+    }
+
+    /**
+     *
+     */
+    public void updateExam(Long id, Exam form, User loginUser) {
+        Exam db = this.getExamById(id);
+        form.setId(db.getId());
+        form.setTerm(db.getTerm());
+        form.setCreateTime(db.getCreateTime());
+        this.examRepository.save(form);
+    }
+
+    /**
+     *
+     */
+    public void checkUserStudy(Exam exam, User loginUser) {
+        if (loginUser.getType() == User.UserType.STUDENT) {
+            Integer total = this.specimenStudyRepository.findStudyTimingByUserId(loginUser.getId());
+            if (total == null) {
+                total = 0;
+            }
+            if (total < exam.getLearn()) {
+                throw new SystemException(SystemError.EXAM_STUDY_TIMING_LIMIT, total / 60);
+            }
+        }
     }
 
 
@@ -83,7 +128,6 @@ public class ExamService {
         paper.setExamId(exam.getId());
         paper.setCreateTime(new Date());
         paper.setStartTime(new Date());
-        this.examPaperRepository.save(paper);
         paper.setQuestions(this.buildExamPaperQuestion(exam, paper));
         return paper;
     }
@@ -92,24 +136,35 @@ public class ExamService {
      *
      */
     public void submitExam(ExamPaper form, User user) {
-        ExamPaper paper = this.examPaperRepository.findById(form.getId()).orElseThrow(() -> new SystemException(SystemError.EXAM_DATA_ERROR));
-        if (!paper.getUserId().equals(user.getId())) {
+        Exam exam = this.getExamById(form.getExamId());
+        if (exam == null) {
             throw new SystemException(SystemError.EXAM_DATA_ERROR);
         }
-        List<ExamPaperQuestion> questions = this.examPaperQuetionRepository.findByPaperId(paper.getId());
-        if (CollectionUtils.isEmpty(questions)) {
-            throw new SystemException(SystemError.EXAM_DATA_ERROR);
+        Date now = new Date();
+        if (now.getTime() - form.getStartTime().getTime() > (exam.getDuration() * 1000 + 60)) {
+            throw new SystemException(SystemError.EXAM_OVER_BUT_ANSWER);
         }
-        paper.setSubmitTime(new Date());
+        form.setUserId(user.getId());
+        form.setSubmitTime(now);
         BigDecimal score = new BigDecimal(0);
-        BigDecimal eachScore = new BigDecimal(100).divide(new BigDecimal(questions.size()));
-        for (ExamPaperQuestion question : questions) {
-            if (question.getCorrect() != null && question.getCorrect()) {
+        BigDecimal eachScore = new BigDecimal(100).divide(new BigDecimal(form.getQuestions().size()));
+        for (ExamPaperQuestion question : form.getQuestions()) {
+            Question q = this.questionRepository.findById(question.getQid()).orElseThrow(() -> new SystemException(SystemError.EXAM_DATA_ERROR));
+            question.setOptions(q.getOptions());
+            question.setTitle(q.getTitle());
+            question.setCorrect(false);
+            for (QuestionOption option : question.getOptions()) {
+                if (option.getAnswer().equals(question.getAnswer()) && option.isCorrect()) {
+                    question.setCorrect(true);
+                    break;
+                }
+            }
+            if (question.getCorrect()) {
                 score = score.add(eachScore);
             }
         }
-        paper.setScore(score.floatValue());
-        this.examPaperRepository.save(paper);
+        form.setScore(score.floatValue());
+        this.examPaperRepository.save(form);
     }
 
     /**
@@ -142,50 +197,6 @@ public class ExamService {
         this.examPaperQuetionRepository.save(question);
     }
 
-
-    /**
-     *
-     */
-    public Exam getExamById(Long id) {
-        return this.examRepository.findById(id).orElse(null);
-    }
-
-
-    /**
-     *
-     */
-    public Exam getExamByTerm(Term term) {
-        return this.examRepository.findByTermId(term.getId());
-    }
-
-    /**
-     *
-     */
-    public Exam createExam(Term term) {
-        Exam exam = new Exam();
-        exam.setTerm(term);
-        exam.setMaxCount(defaultMaxCount);
-        exam.setDuration(defaultDuration);
-        exam.setQuestionCount(defaultQuestionCount);
-        exam.setCreateTime(new Date());
-        this.examRepository.save(exam);
-        return exam;
-    }
-
-    /**
-     *
-     */
-    public ExamPaper getLastUnCompleteExamPaper(Exam exam, User user) {
-        PageRequest pageRequest = PageRequest.of(0, 1, Sort.by(Sort.Order.desc("createTime")));
-        Calendar overCheckDate = Calendar.getInstance();
-        overCheckDate.setTime(new Date(new Date().getTime() - (exam.getDuration() * 1000)));
-        Page<ExamPaper> page = this.examPaperRepository.findUnCompleteByUserIdAndExamId(user.getId(), exam.getId(), overCheckDate.getTime() , pageRequest);
-        if (page.hasContent()) {
-            return page.getContent().get(0);
-        }
-        return null;
-    }
-
     /**
      *
      */
@@ -196,19 +207,16 @@ public class ExamService {
         }
         List<ExamPaperQuestion> questions = new ArrayList<>();
         for (QuestionBank bank : banks) {
-            List<Question> qs = this.questionRepository.findByBankId(bank.getId());
-            for(int n=0;n<bank.getQuestionCount();n++) {
-                Question q = qs.get(new Random().nextInt(qs.size()));
+            List<Question> qs = this.questionRepository.findByBankIdByRandom(bank.getId(), bank.getQuestionCount());
+            for (Question q : qs) {
                 ExamPaperQuestion question = new ExamPaperQuestion();
                 question.setQid(q.getId());
                 question.setPaperId(paper.getId());
                 question.setTitle(q.getTitle());
                 question.setOptions(q.getOptions());
                 questions.add(question);
-                qs.remove(q);
             }
         }
-        this.examPaperQuetionRepository.saveAll(questions);
         return questions;
     }
 
@@ -216,10 +224,10 @@ public class ExamService {
      *
      */
     public void shuffleQuestion(ExamPaper paper) {
-        if(CollectionUtils.isEmpty(paper.getQuestions())) {
+        if (CollectionUtils.isEmpty(paper.getQuestions())) {
             return;
         }
-        for(ExamPaperQuestion question : paper.getQuestions()) {
+        for (ExamPaperQuestion question : paper.getQuestions()) {
             Collections.shuffle(question.getOptions());
         }
     }

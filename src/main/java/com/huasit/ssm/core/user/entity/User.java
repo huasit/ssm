@@ -5,7 +5,6 @@ import com.huasit.ssm.core.permission.entity.Permission;
 import com.huasit.ssm.core.role.entity.Role;
 
 import javax.persistence.*;
-import javax.validation.constraints.Email;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
@@ -75,7 +74,6 @@ public class User implements Serializable {
      *
      */
     @Column
-    @Email
     private String email;
 
     /**

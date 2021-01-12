@@ -20,6 +20,12 @@ public class Exam {
      *
      */
     @Column(nullable = false)
+    private int learn;
+
+    /**
+     *
+     */
+    @Column(nullable = false)
     private int maxCount;
 
     /**
@@ -27,12 +33,6 @@ public class Exam {
      */
     @Column(nullable = false)
     private int duration;
-
-    /**
-     *
-     */
-    @Column(nullable = false)
-    private int questionCount;
 
     /**
      *
@@ -55,6 +55,14 @@ public class Exam {
         this.id = id;
     }
 
+    public int getLearn() {
+        return learn;
+    }
+
+    public void setLearn(int learn) {
+        this.learn = learn;
+    }
+
     public int getMaxCount() {
         return maxCount;
     }
@@ -69,14 +77,6 @@ public class Exam {
 
     public void setDuration(int duration) {
         this.duration = duration;
-    }
-
-    public int getQuestionCount() {
-        return questionCount;
-    }
-
-    public void setQuestionCount(int questionCount) {
-        this.questionCount = questionCount;
     }
 
     public Term getTerm() {

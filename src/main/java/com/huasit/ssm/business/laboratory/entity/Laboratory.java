@@ -50,12 +50,6 @@ public class Laboratory {
      *
      */
     @Column(nullable = false)
-    private String allowHours;
-
-    /**
-     *
-     */
-    @Column(nullable = false)
     private Long creatorId;
 
     /**
@@ -116,14 +110,6 @@ public class Laboratory {
 
     public void setCapacity(int capacity) {
         this.capacity = capacity;
-    }
-
-    public String getAllowHours() {
-        return allowHours;
-    }
-
-    public void setAllowHours(String allowHours) {
-        this.allowHours = allowHours;
     }
 
     public Long getCreatorId() {

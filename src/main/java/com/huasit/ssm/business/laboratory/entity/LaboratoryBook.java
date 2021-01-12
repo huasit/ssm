@@ -53,8 +53,20 @@ public class LaboratoryBook {
     /**
      *
      */
+    @Column(nullable = false)
+    private Long teacherId;
+
+    /**
+     *
+     */
     @Column
     private Integer bookHour2;
+
+    /**
+     *
+     */
+    @Column(nullable = false)
+    private Long teacherId2;
 
     /**
      *
@@ -138,5 +150,21 @@ public class LaboratoryBook {
 
     public void setCreateTime(Date createTime) {
         this.createTime = createTime;
+    }
+
+    public Long getTeacherId() {
+        return teacherId;
+    }
+
+    public void setTeacherId(Long teacherId) {
+        this.teacherId = teacherId;
+    }
+
+    public Long getTeacherId2() {
+        return teacherId2;
+    }
+
+    public void setTeacherId2(Long teacherId2) {
+        this.teacherId2 = teacherId2;
     }
 }

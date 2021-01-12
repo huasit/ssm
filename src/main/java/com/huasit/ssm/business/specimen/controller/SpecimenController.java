@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -84,6 +85,17 @@ public class SpecimenController {
         AuthenticationUser loginUser = (AuthenticationUser) authentication.getPrincipal();
         this.specimenService.delete(id, loginUser.getSources());
         return Response.success("success", true).entity();
+    }
+
+    /**
+     *
+     */
+    @ResponseBody
+    @GetMapping("/study/timing/")
+    public ResponseEntity<Map<String, Object>> timingList(Authentication authentication) {
+        AuthenticationUser loginUser = (AuthenticationUser) authentication.getPrincipal();
+        List<Object[]> list = this.specimenService.studyTimingList(loginUser.getSources());
+        return Response.success("list", list).entity();
     }
 
     /**
