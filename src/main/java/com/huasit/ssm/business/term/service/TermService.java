@@ -64,7 +64,7 @@ public class TermService implements ApplicationRunner {
      */
     public Term getCurrentTerm() {
         Calendar calendar = Calendar.getInstance();
-        List<Term> terms = this.termRepository.findByYear(calendar.get(Calendar.YEAR));
+        List<Term> terms = this.termRepository.findAll();
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         for (Term term : terms) {
             try {
