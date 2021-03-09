@@ -1,9 +1,16 @@
 package com.huasit.ssm.business.specimen.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import javax.persistence.*;
 
 @Entity
 @Table(name = "Specimen_kps")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class SpecimenKps {
 
     /**
@@ -36,6 +43,8 @@ public class SpecimenKps {
      */
     @Column
     private String content;
+
+    private Integer sbId;
 
     public Long getId() {
         return id;

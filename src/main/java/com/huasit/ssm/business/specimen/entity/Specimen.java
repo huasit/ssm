@@ -81,7 +81,7 @@ public class Specimen {
      *
      */
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name="specimenId")
+    @JoinColumn(name = "specimenId")
     private List<SpecimenKps> kps;
 
     /**

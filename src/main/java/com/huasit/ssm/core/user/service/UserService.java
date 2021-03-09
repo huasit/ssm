@@ -6,10 +6,7 @@ import com.huasit.ssm.core.permission.entity.Permission;
 import com.huasit.ssm.core.permission.entity.PermissionRepository;
 import com.huasit.ssm.core.role.entity.Role;
 import com.huasit.ssm.core.role.entity.RoleRepository;
-import com.huasit.ssm.core.user.entity.User;
-import com.huasit.ssm.core.user.entity.UserRepository;
-import com.huasit.ssm.core.user.entity.UserToken;
-import com.huasit.ssm.core.user.entity.UserTokenRepository;
+import com.huasit.ssm.core.user.entity.*;
 import com.huasit.ssm.system.exception.SystemError;
 import com.huasit.ssm.system.exception.SystemException;
 import io.netty.util.internal.StringUtil;
@@ -45,11 +42,26 @@ public class UserService {
      *
      */
     public Page<User> list(User form, int page, int pageSize, User loginUser) {
-        PageRequest pageRequest = PageRequest.of(page - 1, pageSize, Sort.by(Sort.Order.asc("id")));
+        PageRequest pageRequest = PageRequest.of(page - 1, pageSize, Sort.by(Sort.Order.desc("id")));
         return this.userRepository.findAll((Specification<User>) (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             if (form.getType() == User.UserType.TEACHER) {
                 predicates.add(cb.equal(root.get("login").as(boolean.class), form.isLogin()));
+            }
+            if (form.getState() != null) {
+                predicates.add(cb.equal(root.get("state").as(User.UserState.class), form.getState()));
+            }
+            if (form.getUsername() != null && !form.getUsername().equals("")) {
+                predicates.add(cb.like(root.get("username"), "%" + form.getUsername() + "%"));
+            }
+            if (form.getName() != null && !form.getName().equals("")) {
+                predicates.add(cb.like(root.get("name"), "%" + form.getName() + "%"));
+            }
+            if (form.getClasses() != null && form.getClasses().getId() != null) {
+                predicates.add(cb.equal(root.get("classes"), form.getClasses()));
+            }
+            if (form.getClasses() != null && form.getClasses().getTeacher().getId() != null) {
+                predicates.add(cb.equal(root.get("classes").get("teacher"), form.getClasses().getTeacher()));
             }
             predicates.add(cb.equal(root.get("type").as(User.UserType.class), form.getType()));
             query.where(predicates.toArray(new Predicate[0]));
@@ -85,6 +97,27 @@ public class UserService {
             form.setPassword(new BCryptPasswordEncoder().encode(form.getPassword()));
         }
         this.userRepository.save(form);
+    }
+
+    public String addUsers(List<User> users, User loginUser, String type) {
+        users.forEach(user -> {
+            user.setId(null);
+            user.setCreateTime(new Date());
+            user.setCreatorId(loginUser.getId());
+            user.setState(User.UserState.NORMAL);
+            if ("student".equals(type)) {
+                user.setType(User.UserType.STUDENT);
+                user.setLogin(true);
+                Term term = this.termService.getTerm(user.getOverTerm().getYear(), user.getOverTerm().getNum());
+                if (term == null) {
+                    throw new SystemException(SystemError.TERM_ERROR);
+                }
+                user.setOverTerm(term);
+            }
+            user.setPassword(new BCryptPasswordEncoder().encode("123"));
+        });
+        this.userRepository.saveAll(users);
+        return "";
     }
 
     /**
@@ -163,6 +196,14 @@ public class UserService {
         return user;
     }
 
+    public List<User> findAll() {
+        return this.userRepository.findAll();
+    }
+
+    public List<User> findByUsernameIsNotNull() {
+        return this.userRepository.findByUsernameIsNotNull();
+    }
+
     /**
      *
      */
@@ -185,6 +226,14 @@ public class UserService {
         userToken.setCreateTime(now);
         this.userTokenRepository.save(userToken);
         return userToken;
+    }
+
+    public void disableNormal() {
+        this.userRepository.disableNormal();
+    }
+
+    public void normalDisable() {
+        this.userRepository.normalDisable();
     }
 
     /**

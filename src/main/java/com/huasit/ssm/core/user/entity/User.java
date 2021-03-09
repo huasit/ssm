@@ -1,8 +1,13 @@
 package com.huasit.ssm.core.user.entity;
 
+import com.huasit.ssm.business.classes.entity.Classes;
 import com.huasit.ssm.business.term.entity.Term;
 import com.huasit.ssm.core.permission.entity.Permission;
 import com.huasit.ssm.core.role.entity.Role;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -11,6 +16,10 @@ import java.util.List;
 
 @Entity
 @Table(name = "SYS_USER")
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Data
 public class User implements Serializable {
 
     public enum UserState {
@@ -89,6 +98,8 @@ public class User implements Serializable {
     @JoinColumn(name = "overTermId", foreignKey = @ForeignKey(name = "none", value = ConstraintMode.NO_CONSTRAINT))
     private Term overTerm;
 
+    @OneToOne
+    private Classes classes;
     /**
      *
      */

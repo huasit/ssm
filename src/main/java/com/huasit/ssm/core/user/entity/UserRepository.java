@@ -6,13 +6,18 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
 import javax.transaction.Transactional;
+import java.util.List;
 import java.util.Optional;
 
 /**
  *
  */
 @Transactional
-public interface UserRepository extends CrudRepository<User, Long>, JpaSpecificationExecutor<User>  {
+public interface UserRepository extends CrudRepository<User, Long>, JpaSpecificationExecutor<User> {
+
+    List<User> findAll();
+
+    List<User> findByUsernameIsNotNull();
 
     /**
      *
@@ -39,4 +44,12 @@ public interface UserRepository extends CrudRepository<User, Long>, JpaSpecifica
     @Modifying
     @Query("update User set password=?2 where id=?1")
     void updatePassword(Long id, String password);
+
+    @Modifying
+    @Query("update User set state=2 where state=0")
+    void disableNormal();
+
+    @Modifying
+    @Query("update User set state=0 where state=2")
+    void normalDisable();
 }
