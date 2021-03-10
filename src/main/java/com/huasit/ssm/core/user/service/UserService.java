@@ -156,22 +156,23 @@ public class UserService {
         }
         form.setCreatorId(db.getCreatorId());
         form.setCreateTime(db.getCreateTime());
-        //教师禁用检查
-        if (form.getType() == User.UserType.TEACHER) {
+        //教师禁用/删除检查
+        if (form.getType() == User.UserType.TEACHER && (form.getState() == User.UserState.DISABLE || form.getState() == User.UserState.DELETE)) {
             teacherDisableCheck(form);
         }
         this.userRepository.save(form);
     }
 
     private void teacherDisableCheck(User user) throws Exception {
+        String stateName = user.getState() == User.UserState.DISABLE ? "禁用" : "删除";
         //检查是否设定为班级的老师
         Classes classes = classesRepository.findByTeacher(user);
         if (classes != null) {
-            throw new Exception(user.getName() + "已分配到" + classes.getName() + ",请先重新分配后再禁用.");
+            throw new Exception(user.getName() + "已分配到" + classes.getName() + ",请先重新分配后再" + stateName + ".");
         }
         //检查是否有大于等于今天的值班安排
         if (dutyRepository.teacherUnCompleteDuty(user.getId()) > 0) {
-            throw new Exception(user.getName() + "有未完成的值班安排,请重新安排值班或值班日过后再禁用.");
+            throw new Exception(user.getName() + "有未完成的值班安排,请重新安排值班或值班日过后再" + stateName + ".");
         }
     }
 
