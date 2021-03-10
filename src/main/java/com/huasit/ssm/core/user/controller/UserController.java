@@ -87,7 +87,7 @@ public class UserController {
     @ResponseBody
     @PutMapping("/{id}/")
     @PreAuthorize("hasAnyRole('super','admin')")
-    public ResponseEntity<Map<String, Object>> update(@PathVariable Long id, @RequestBody User form, Authentication authentication) {
+    public ResponseEntity<Map<String, Object>> update(@PathVariable Long id, @RequestBody User form, Authentication authentication) throws Exception {
         AuthenticationUser loginUser = (AuthenticationUser) authentication.getPrincipal();
         this.userService.update(id, form, loginUser.getSources());
         return Response.success("success", true).entity();
@@ -179,16 +179,16 @@ public class UserController {
     }
 
     @ResponseBody
-    @PutMapping("/disableNormal/")
+    @PutMapping("/disableNormalStudent/")
     public ResponseEntity<Map<String, Object>> disableNormal(Authentication authentication) {
-        this.userService.disableNormal();
+        this.userService.disableNormalStudent();
         return Response.success("success", true).entity();
     }
 
     @ResponseBody
-    @PutMapping("/normalDisable/")
+    @PutMapping("/normalDisableStudent/")
     public ResponseEntity<Map<String, Object>> normalDisable(Authentication authentication) {
-        this.userService.normalDisable();
+        this.userService.normalDisableStudent();
         return Response.success("success", true).entity();
     }
 

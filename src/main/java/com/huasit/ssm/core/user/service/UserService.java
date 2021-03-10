@@ -1,12 +1,18 @@
 package com.huasit.ssm.core.user.service;
 
+import com.huasit.ssm.business.classes.entity.Classes;
+import com.huasit.ssm.business.classes.entity.ClassesRepository;
+import com.huasit.ssm.business.duty.entity.DutyRepository;
 import com.huasit.ssm.business.term.entity.Term;
 import com.huasit.ssm.business.term.service.TermService;
 import com.huasit.ssm.core.permission.entity.Permission;
 import com.huasit.ssm.core.permission.entity.PermissionRepository;
 import com.huasit.ssm.core.role.entity.Role;
 import com.huasit.ssm.core.role.entity.RoleRepository;
-import com.huasit.ssm.core.user.entity.*;
+import com.huasit.ssm.core.user.entity.User;
+import com.huasit.ssm.core.user.entity.UserRepository;
+import com.huasit.ssm.core.user.entity.UserToken;
+import com.huasit.ssm.core.user.entity.UserTokenRepository;
 import com.huasit.ssm.system.exception.SystemError;
 import com.huasit.ssm.system.exception.SystemException;
 import io.netty.util.internal.StringUtil;
@@ -100,9 +106,11 @@ public class UserService {
     }
 
     public String addUsers(List<User> users, User loginUser, String type) {
+        Date date = new Date();
+        String password = new BCryptPasswordEncoder().encode("123");
         users.forEach(user -> {
             user.setId(null);
-            user.setCreateTime(new Date());
+            user.setCreateTime(date);
             user.setCreatorId(loginUser.getId());
             user.setState(User.UserState.NORMAL);
             if ("student".equals(type)) {
@@ -114,7 +122,7 @@ public class UserService {
                 }
                 user.setOverTerm(term);
             }
-            user.setPassword(new BCryptPasswordEncoder().encode("123"));
+            user.setPassword(password);
         });
         this.userRepository.saveAll(users);
         return "";
@@ -123,7 +131,7 @@ public class UserService {
     /**
      *
      */
-    public void update(Long id, User form, User loginUser) {
+    public void update(Long id, User form, User loginUser) throws Exception {
         User db = this.userRepository.findById(id).orElseThrow(() -> new SystemException(SystemError.FORMDATA_ERROR));
         form.setId(id);
         form.setType(db.getType());
@@ -148,7 +156,23 @@ public class UserService {
         }
         form.setCreatorId(db.getCreatorId());
         form.setCreateTime(db.getCreateTime());
+        //教师禁用检查
+        if (form.getType() == User.UserType.TEACHER) {
+            teacherDisableCheck(form);
+        }
         this.userRepository.save(form);
+    }
+
+    private void teacherDisableCheck(User user) throws Exception {
+        //检查是否设定为班级的老师
+        Classes classes = classesRepository.findByTeacher(user);
+        if (classes != null) {
+            throw new Exception(user.getName() + "已分配到" + classes.getName() + ",请先重新分配后再禁用.");
+        }
+        //检查是否有大于等于今天的值班安排
+        if (dutyRepository.teacherUnCompleteDuty(user.getId()) > 0) {
+            throw new Exception(user.getName() + "有未完成的值班安排,请重新安排值班或值班日过后再禁用.");
+        }
     }
 
     /**
@@ -228,12 +252,12 @@ public class UserService {
         return userToken;
     }
 
-    public void disableNormal() {
-        this.userRepository.disableNormal();
+    public void disableNormalStudent() {
+        this.userRepository.disableNormalStudent();
     }
 
-    public void normalDisable() {
-        this.userRepository.normalDisable();
+    public void normalDisableStudent() {
+        this.userRepository.normalDisableStudent();
     }
 
     /**
@@ -253,7 +277,10 @@ public class UserService {
      */
     @Autowired
     RoleRepository roleRepository;
-
+    @Autowired
+    ClassesRepository classesRepository;
+    @Autowired
+    DutyRepository dutyRepository;
     /**
      *
      */

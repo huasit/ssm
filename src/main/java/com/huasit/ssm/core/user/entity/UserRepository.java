@@ -46,10 +46,10 @@ public interface UserRepository extends CrudRepository<User, Long>, JpaSpecifica
     void updatePassword(Long id, String password);
 
     @Modifying
-    @Query("update User set state=2 where state=0")
-    void disableNormal();
+    @Query("update User set state=2 where state=0 and type = 1")
+    void disableNormalStudent();
 
     @Modifying
-    @Query("update User set state=0 where state=2")
-    void normalDisable();
+    @Query("update User set state=0 where state=2 and type = 1")
+    void normalDisableStudent();
 }

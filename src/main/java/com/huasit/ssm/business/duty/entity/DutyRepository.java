@@ -13,7 +13,7 @@ import java.util.List;
  *
  */
 @Transactional
-public interface DutyRepository extends CrudRepository<Duty, Long>, JpaSpecificationExecutor<Duty>  {
+public interface DutyRepository extends CrudRepository<Duty, Long>, JpaSpecificationExecutor<Duty> {
 
     /**
      *
@@ -33,4 +33,7 @@ public interface DutyRepository extends CrudRepository<Duty, Long>, JpaSpecifica
     @Modifying
     @Query("delete from Duty where id=?1")
     void delete(Long id);
+
+    @Query(nativeQuery = true, value = "select count(*) from duty  d where (am_user_id = ?1 or pm_user_id= ?1 or ng_user_id = ?1) and date >= CURDATE()")
+    Integer teacherUnCompleteDuty(Long teacherId);
 }

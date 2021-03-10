@@ -1,5 +1,6 @@
 package com.huasit.ssm.business.classes.entity;
 
+import com.huasit.ssm.core.user.entity.User;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -21,4 +22,6 @@ public interface ClassesRepository extends CrudRepository<Classes, Long>, JpaSpe
     void updateDel(boolean del, Long id);
 
     List<Classes> findAll();
+
+    Classes findByTeacher(User teacher);
 }
