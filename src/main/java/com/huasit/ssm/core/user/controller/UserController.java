@@ -27,10 +27,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Stream;
 
 @Controller
 @RequestMapping("/user")
@@ -134,12 +132,15 @@ public class UserController {
                 Row hssfRow = hssfSheet.getRow(rowNum);
                 if (hssfRow != null) {
                     //检查空值
-                    String usernameStr = EmptyCheck(rowNum, "学号", hssfRow.getCell(0));
-                    String nameStr = EmptyCheck(rowNum, "姓名", hssfRow.getCell(1));
-                    String sexStr = EmptyCheck(rowNum, "性别", hssfRow.getCell(2));
-                    String termYearStr = EmptyCheck(rowNum, "学年", hssfRow.getCell(3));
-                    String termNumStr = EmptyCheck(rowNum, "学期", hssfRow.getCell(4));
-                    String classesNameStr = EmptyCheck(rowNum, "班级", hssfRow.getCell(5));
+                    if (emptyRow(hssfRow, 6)) {
+                        break;
+                    }
+                    String usernameStr = FieldCheck(rowNum, "学号", hssfRow.getCell(0));
+                    String nameStr = FieldCheck(rowNum, "姓名", hssfRow.getCell(1));
+                    String sexStr = FieldCheck(rowNum, "性别", hssfRow.getCell(2));
+                    String termYearStr = FieldCheck(rowNum, "学年", hssfRow.getCell(3));
+                    String termNumStr = FieldCheck(rowNum, "学期", hssfRow.getCell(4));
+                    String classesNameStr = FieldCheck(rowNum, "班级", hssfRow.getCell(5));
 
                     String username = usernameStr.split("\\.")[0];
                     //检查学号是否重复
@@ -157,13 +158,7 @@ public class UserController {
                     if (!classes.isPresent()) {
                         throw new SystemException(SystemError.IMPORT_FIELD_NOT_MATCH, rowNum, "班级");
                     }
-                    users.add(User.builder()
-                            .username(username)
-                            .name(nameStr)
-                            .sex(sexStr)
-                            .overTerm(term.get())
-                            .classes(classes.get())
-                            .build());
+                    users.add(User.builder().username(username).name(nameStr).sex(sexStr).overTerm(term.get()).classes(classes.get()).build());
                 }
             }
             this.userService.addUsers(users, loginUser.getSources(), userType);
@@ -171,11 +166,15 @@ public class UserController {
         return Response.success("success", true).entity();
     }
 
-    public String EmptyCheck(int row, String field, Cell value) {
+    public String FieldCheck(int row, String field, Cell value) {
         if (null == value || value.toString().equals("")) {
-            throw new SystemException(SystemError.IMPORT_FIELD_EMPTY, row, field);
+            throw new SystemException(SystemError.IMPORT_FIELD_EMPTY, row + 1, field);
         }
         return value.toString();
+    }
+
+    public boolean emptyRow(Row row, int to) {
+        return Stream.iterate(0, item -> item + 1).limit(to).map(row::getCell).allMatch(cell -> cell == null || cell.toString().trim().equals(""));
     }
 
     @ResponseBody
