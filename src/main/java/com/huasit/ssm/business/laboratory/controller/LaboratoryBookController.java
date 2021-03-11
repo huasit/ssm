@@ -26,7 +26,7 @@ public class LaboratoryBookController {
     @GetMapping("/list/")
     public ResponseEntity<Map<String, Object>> list(LaboratoryBook form, @RequestParam("page") int page, @RequestParam(name = "pageSize", defaultValue = "10") int pageSize, Authentication authentication) {
         AuthenticationUser loginUser = (AuthenticationUser) authentication.getPrincipal();
-        Page<LaboratoryBook> laboratoryBooks   = this.laboratoryBookService.list(form, page, pageSize, loginUser.getSources());
+        Page<LaboratoryBook> laboratoryBooks = this.laboratoryBookService.list(form, page, pageSize, loginUser.getSources());
         return Response.success("list", laboratoryBooks.getContent(), "page", page, "count", laboratoryBooks.getTotalElements(), "total_page", laboratoryBooks.getTotalPages()).entity();
     }
 
@@ -35,7 +35,7 @@ public class LaboratoryBookController {
      */
     @ResponseBody
     @PostMapping("/")
-    public ResponseEntity<Map<String, Object>> add(@RequestBody LaboratoryBook form, Authentication authentication) {
+    public synchronized ResponseEntity<Map<String, Object>> add(@RequestBody LaboratoryBook form, Authentication authentication) {
         AuthenticationUser loginUser = (AuthenticationUser) authentication.getPrincipal();
         this.laboratoryBookService.add(form, loginUser.getSources());
         return Response.success("laboratory_book", form).entity();
