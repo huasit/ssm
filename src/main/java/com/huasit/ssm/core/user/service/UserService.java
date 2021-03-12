@@ -149,9 +149,7 @@ public class UserService {
         if (usernameCheck != null && !usernameCheck.getId().equals(form.getId())) {
             throw new SystemException(SystemError.USERNAME_EXISTS);
         }
-        if (StringUtil.isNullOrEmpty(form.getPassword())) {
-            form.setPassword(db.getPassword());
-        } else {
+        if (!db.getPassword().equals(form.getPassword())) {
             form.setPassword(new BCryptPasswordEncoder().encode(form.getPassword()));
         }
         form.setCreatorId(db.getCreatorId());
