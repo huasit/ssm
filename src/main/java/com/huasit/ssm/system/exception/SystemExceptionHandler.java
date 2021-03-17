@@ -48,6 +48,6 @@ public class SystemExceptionHandler {
     @ExceptionHandler(value = Exception.class)
     public ResponseEntity<Map<String, Object>> exceptionHandler(HttpServletRequest request, Exception e) {
         LogManager.getLogger().error(e);
-        return Response.innerError(SystemError.UNKNOWN_ERROR, e.getMessage()).entity();
+        return Response.error(SystemError.UNKNOWN_ERROR, request).entity();
     }
 }

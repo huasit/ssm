@@ -30,7 +30,7 @@ public class LaboratoryBookService {
      *
      */
     public Page<LaboratoryBook> list(LaboratoryBook form, int page, int pageSize, User loginUser) {
-        PageRequest pageRequest = PageRequest.of(page - 1, pageSize, Sort.by(Sort.Order.asc("id")));
+        PageRequest pageRequest = PageRequest.of(page - 1, pageSize, Sort.by(Sort.Order.desc("id")));
         return this.laboratoryBookRepository.findAll((Specification<LaboratoryBook>) (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cb.equal(root.get("del").as(boolean.class), false));
@@ -197,8 +197,10 @@ public class LaboratoryBookService {
             } else {
                 teacher = duty.getNgUser();
             }
-            book.setTeacherId(teacher.getId());
-            this.laboratoryBookRepository.updateTeacherId(teacher.getId(), book.getId());
+            if (teacher != null) {
+                book.setTeacherId(teacher.getId());
+                this.laboratoryBookRepository.updateTeacherId(teacher.getId(), book.getId());
+            }
         }
         if (book.getBookHour2() != null && hour == book.getBookHour2() && book.getTeacherId2() == null) {
             User teacher;
@@ -209,8 +211,10 @@ public class LaboratoryBookService {
             } else {
                 teacher = duty.getNgUser();
             }
-            book.setTeacherId2(teacher.getId());
-            this.laboratoryBookRepository.updateTeacherId2(teacher.getId(), book.getId());
+            if (teacher != null) {
+                book.setTeacherId2(teacher.getId());
+                this.laboratoryBookRepository.updateTeacherId2(teacher.getId(), book.getId());
+            }
         }
     }
 

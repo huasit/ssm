@@ -87,13 +87,7 @@ public class Response {
         return e.httpStatus == null ? Response.error(e.code, msg) : Response.error(e.code, msg, e.httpStatus);
     }
 
-    public static Response innerError(SystemError e, String msg) {
-        return Response.error(e.code, msg);
-    }
 
-    /**
-     *
-     */
     public static Response error(SystemError e, Object[] params, HttpServletRequest request) {
         String msg = Locale.getInstance(request).getMessage("err_" + e.code, params);
         return e.httpStatus == null ? Response.error(e.code, msg) : Response.error(e.code, msg, e.httpStatus);
